@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "unity": "6000.0",
   "description": "Reusable, themed, context-aware world-space uGUI controls for mixed reality.",
+  "author": {
+    "name": "evgh"
+  },
   "keywords": ["ui", "ugui", "mixed-reality", "xr"],
   "dependencies": {
     "com.unity.inputsystem": "1.17.0",
