@@ -3,7 +3,6 @@
   "rootNamespace": "Evgh.MixedUI.Tests",
   "references": [
     "Evgh.MixedUI",
-    "Evgh.MixedUI.XRI",
     "UnityEngine.UI",
     "Unity.XR.Interaction.Toolkit",
     "UnityEngine.TestRunner",
@@ -14,4 +13,3 @@
   "autoReferenced": false,
   "defineConstraints": ["UNITY_INCLUDE_TESTS"]
 }
-

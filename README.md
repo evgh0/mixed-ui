@@ -1,891 +1,427 @@
-# Mixed Ui
+# Mixed UI
 
-Mixed Ui is a Unity 6 package for building reusable, consistently styled, context-aware mixed-reality interfaces with Unity's built-in uGUI Canvas system.
+Mixed UI is a Unity 6 visual component kit for XR Interaction Toolkit world-space uGUI.
 
-The package focuses on a common runtime UI problem: opening a menu for one specific scene object and ensuring every control operates on that object without relying on global selection state. A visibility toggle, scale slider, delete button, or future custom control receives its target once through a typed contextual binding.
+It supplies a neutral-dark mixed-reality theme, reusable control and layout prefabs, XRI-ready Canvas prefabs, and small style components. XRI owns ray and poke input. uGUI owns clicks, values, navigation, and interactability. Mixed UI only owns presentation.
 
-The package is located at [`Packages/com.evgh.mixed-ui`](Packages/com.evgh.mixed-ui). This repository is also a minimal Unity project that can compile and test the embedded package directly.
+- Package ID: `com.evgh.mixed-ui`
+- Current version: `0.2.0`
+- Namespace: `Evgh.MixedUI`
 
-## Contents
+## What the package includes
 
-- [Features](#features)
-- [Requirements and compatibility](#requirements-and-compatibility)
-- [Installation](#installation)
-- [Required Unity setup](#required-unity-setup)
-- [Quick start](#quick-start)
-- [Implementing a target](#implementing-a-target)
-- [Creating and opening the UI](#creating-and-opening-the-ui)
-- [Understanding the builder API](#understanding-the-builder-api)
-- [Targets, anchors, parents, and viewers](#targets-anchors-parents-and-viewers)
-- [Themes and prefabs](#themes-and-prefabs)
-- [Using individual controls](#using-individual-controls)
-- [Commands](#commands)
-- [Target lifetime and cleanup](#target-lifetime-and-cleanup)
-- [XRI interaction setup](#xri-interaction-setup)
-- [Extending the package](#extending-the-package)
-- [Testing](#testing)
-- [Troubleshooting](#troubleshooting)
-- [Current limitations](#current-limitations)
+- World-space Canvas configured with `TrackedDeviceGraphicRaycaster`.
+- Head-follow Canvas configured with XRI `LazyFollow`.
+- Body, heading, and caption TMP labels.
+- Primary, secondary, subtle, destructive, and success buttons.
+- Toggle and slider controls.
+- Card, vertical stack, horizontal stack, modal, and scroll panel layouts.
+- A runtime-switchable `MixedUITheme`.
+- A visual gallery prefab and importable sample scene.
+- EditMode and PlayMode validation without requiring XR hardware.
 
-## Features
+Mixed UI does not contain an application UI framework. It has no factory, command system, contextual target model, builder API, selection state, or custom input event layer.
 
-- Built on standard `Canvas`, `Button`, `Toggle`, `Slider`, layout groups, and TextMeshPro components.
-- World-space UI sized with a default convention of 1,000 Canvas units per meter.
-- Typed contextual binding: a menu is bound to exactly one target at a time.
-- Explicit target lifetime notifications and Unity destroyed-object detection.
-- Semantic theme variants such as primary, secondary, destructive, and success.
-- Serialized prefab catalog with no `Resources.Load` or string-based prefab paths.
-- Thin, typed runtime builders for object-specific UI.
-- Command binding with `CanExecute` and explicit interactability refresh.
-- Instance handles that own close and release behavior.
-- Replaceable instantiate/release provider for future pooling.
-- Spatial placement kept separate from the target object.
-- XRI dependencies isolated in the `Evgh.MixedUI.XRI` assembly.
-- Placeholder theme, element prefabs, composite prefab, tests, and sample scripts.
+## Requirements
 
-The runtime does not use scene-wide searches, hierarchy-name searches, global selected-object state, or a monolithic UI manager.
-
-## Requirements and compatibility
-
-| Requirement | Version or expectation |
+| Dependency | Version |
 | --- | --- |
 | Unity | `6000.0` or newer |
-| Validation Editor | `6000.4.2f1` |
-| Unity UI | uGUI `2.0.0`, bundled with Unity 6 |
-| Text | TextMeshPro from the Unity UI package |
-| Input System | `1.17.0` in this host project |
-| XR Interaction Toolkit | `3.0.9` baseline |
-| Initial MR interaction | XRI tracked-device rays |
+| Unity UI | `2.0.0` |
+| XR Interaction Toolkit | `3.0.9` |
+| TextMeshPro | Included in Unity UI 2.0 |
 
-The core `Evgh.MixedUI` assembly uses uGUI and TextMeshPro but does not reference XRI classes. Only `Evgh.MixedUI.XRI` contains XRI-specific code.
+The repository is validated with Unity `6000.4.2f1`.
 
 ## Installation
 
-### Use this repository directly
+### Unity Package Manager from Git
 
-Open the repository root as a Unity project with Unity `6000.4.2f1`. The package is already embedded under `Packages/com.evgh.mixed-ui`.
-
-### Copy it into another Unity project
-
-Copy the complete directory:
+Open **Window → Package Management → Package Manager**, select **Install package from Git URL**, and enter:
 
 ```text
-Packages/com.evgh.mixed-ui
+https://github.com/evgh0/mixed-ui.git?path=/Packages/com.evgh.mixed-ui#main
 ```
 
-into the consuming project's `Packages` directory. Unity detects the package from its `package.json`.
+The GitHub `/tree/main/...` webpage URL cannot be installed directly.
 
-Do not copy only the C# files. The package also contains assembly definitions, prefab assets, the default theme, tests, sample content, and documentation.
-
-### Install from a Git repository
-
-If this package is hosted in a Git repository below the repository root, use Unity's package subdirectory syntax in the consuming project's `Packages/manifest.json`:
+You can also add the dependency manually:
 
 ```json
 {
   "dependencies": {
-    "com.evgh.mixed-ui": "https://example.com/your-repository.git?path=/Packages/com.evgh.mixed-ui#v0.1.0"
+    "com.evgh.mixed-ui": "https://github.com/evgh0/mixed-ui.git?path=/Packages/com.evgh.mixed-ui#main"
   }
 }
 ```
 
-Replace the example URL and revision with the actual repository location and tag or commit.
+### Local package
 
-## Required Unity setup
-
-Complete these steps before opening the first menu.
-
-### 1. Import TextMeshPro resources
-
-In the consuming project, select:
+In Package Manager, select **Install package from disk** and choose:
 
 ```text
-Window > TextMeshPro > Import TMP Essential Resources
+Packages/com.evgh.mixed-ui/package.json
 ```
 
-The package deliberately does not install a second global `TMP Settings` resource. This avoids conflicts with a consuming project's existing fonts, fallback configuration, and TMP settings.
+Alternatively, copy the complete `Packages/com.evgh.mixed-ui` directory into another project's `Packages` directory.
 
-After importing the resources, assign a default TMP font to your theme if the supplied theme's font field is empty.
+## Required project setup
 
-### 2. Enable the Input System
+### Import TMP resources
 
-Set **Active Input Handling** to **Input System Package (New)** or **Both**:
+Select:
 
 ```text
-Edit > Project Settings > Player > Other Settings > Configuration
+Window → TextMeshPro → Import TMP Essential Resources
 ```
 
-The included host project already uses the new Input System.
+Then assign the consuming project's TMP font to `DefaultMixedUITheme` or to an application-owned theme copy.
 
-### 3. Configure the EventSystem
+### Configure XRI UI input
 
-For XRI input, the scene must contain one consumer-owned `EventSystem` with exactly one active input module:
+Use XRI's built-in helpers:
+
+```text
+GameObject → XR → UI EventSystem
+```
+
+The scene should contain:
 
 ```text
 EventSystem
-└── XRUIInputModule
+├── EventSystem
+├── XRUIInputModule
+└── CanvasOptimizer (optional)
 ```
 
-Remove competing `StandaloneInputModule` and `InputSystemUIInputModule` components from that EventSystem. The adapter requires exactly one `BaseInputModule` component in total, so merely disabling an extra module is not sufficient. `XRIWorldSpaceCanvasAdapter` validates this configuration and throws a descriptive error instead of silently changing scene-wide input behavior.
-
-### 4. Configure the XR ray interactor
-
-The XR ray or near-far interactor used by the application must have UI interaction enabled. The specific rig and input actions belong to the consuming application, not this package.
-
-### 5. Create a UI parent
-
-Create an empty scene object to organize generated menu instances:
-
-```text
-Runtime UI Root
-```
-
-This parent controls hierarchy ownership only. It does not determine which object the menu edits or where the menu is placed.
+The application's XR ray and poke interactors must have UI interaction enabled. Mixed UI does not create or configure an XR Origin.
 
 ## Quick start
 
-The smallest complete setup has four pieces:
-
-1. A theme and prefab catalog.
-2. A viewer camera and correctly configured EventSystem.
-3. A target implementing `IConfigurableObject`.
-4. A `UIComposer` used to open the menu.
-
-Add serialized references to a scene component:
-
-```csharp
-using Evgh.MixedUI;
-using Evgh.MixedUI.XRI;
-using UnityEngine;
-using UnityEngine.EventSystems;
-
-public sealed class ConfigurationMenuOpener : MonoBehaviour
-{
-    [SerializeField] private UITheme theme;
-    [SerializeField] private UIPrefabCatalog prefabCatalog;
-    [SerializeField] private Camera viewer;
-    [SerializeField] private EventSystem eventSystem;
-    [SerializeField] private Transform uiRoot;
-    [SerializeField] private ConfigurableSceneObject target;
-
-    private UIComposer _ui;
-    private UIInstanceHandle<ObjectConfigurationMenu> _openMenu;
-
-    private void Awake()
-    {
-        var canvasAdapter = new XRIWorldSpaceCanvasAdapter(eventSystem);
-        var factory = new UIFactory(
-            prefabCatalog,
-            theme,
-            canvasAdapter: canvasAdapter);
-
-        var context = new UIContext(theme, factory, viewer.transform);
-        _ui = new UIComposer(context);
-    }
-
-    public void OpenConfiguration()
-    {
-        _openMenu?.Close();
-
-        _openMenu = _ui
-            .For<IConfigurableObject>(target)
-            .AnchoredTo(target.transform)
-            .WithLocalOffset(new Vector3(0.15f, 0.1f, 0f))
-            .FaceUser()
-            .ConfigurationPanel("Object Settings")
-            .ShowVisibilityControl()
-            .ShowScaleControl(0.1f, 3f)
-            .ShowDeleteAction()
-            .Build(uiRoot);
-    }
-
-    private void OnDestroy()
-    {
-        _openMenu?.Close();
-    }
-}
-```
-
-In the Inspector, assign:
-
-- `DefaultUITheme` from `Packages/com.evgh.mixed-ui/Runtime/Assets/Themes`.
-- `DefaultUIPrefabCatalog` from `Packages/com.evgh.mixed-ui/Runtime/Assets`.
-- The XR camera as `Viewer`.
-- The scene's XRI EventSystem.
-- The empty runtime UI root.
-- The scene object implementing `IConfigurableObject`.
-
-The package sample contains equivalent code in [`SampleMenuOpener.cs`](Packages/com.evgh.mixed-ui/Samples~/ObjectConfiguration/SampleMenuOpener.cs).
-
-## Implementing a target
-
-`IConfigurableObject` is a sample capability interface for the initial composite. It is not a mandatory base type for every application object.
-
-```csharp
-public interface IConfigurableObject
-{
-    string DisplayName { get; }
-    bool IsVisible { get; set; }
-    float Scale { get; set; }
-    bool CanDelete { get; }
-    void Delete();
-}
-```
-
-A scene object can implement the interface without referencing any UI component:
-
-```csharp
-using System;
-using Evgh.MixedUI;
-using UnityEngine;
-
-public sealed class ConfigurableSceneObject : MonoBehaviour,
-    IConfigurableObject,
-    IUITargetLifetime
-{
-    [SerializeField] private string displayName = "Scene Object";
-    [SerializeField] private Renderer[] controlledRenderers = Array.Empty<Renderer>();
-    [SerializeField] private bool canDelete = true;
-
-    private bool _isValid = true;
-
-    public string DisplayName => displayName;
-    public bool CanDelete => canDelete && _isValid;
-    public bool IsValid => _isValid && this != null;
-
-    public event Action Invalidated;
-
-    public bool IsVisible
-    {
-        get => controlledRenderers.Length == 0 || controlledRenderers[0].enabled;
-        set
-        {
-            foreach (var item in controlledRenderers)
-            {
-                if (item != null)
-                    item.enabled = value;
-            }
-        }
-    }
-
-    public float Scale
-    {
-        get => transform.localScale.x;
-        set => transform.localScale = Vector3.one * Mathf.Max(0.001f, value);
-    }
-
-    public void Delete()
-    {
-        if (!CanDelete)
-            return;
-
-        Invalidate();
-        Destroy(gameObject);
-    }
-
-    private void OnDestroy()
-    {
-        Invalidate();
-    }
-
-    private void Invalidate()
-    {
-        if (!_isValid)
-            return;
-
-        _isValid = false;
-        Invalidated?.Invoke();
-    }
-}
-```
-
-The target owns domain behavior. It does not know about `UIButton`, `ObjectConfigurationMenu`, the prefab factory, or XRI.
-
-## Creating and opening the UI
-
-### Create the package services once
-
-The normal application flow constructs one `UIFactory`, `UIContext`, and `UIComposer` for the relevant scene or application scope:
-
-```csharp
-var adapter = new XRIWorldSpaceCanvasAdapter(eventSystem);
-var provider = new InstantiateUIObjectProvider();
-var factory = new UIFactory(prefabCatalog, theme, provider, adapter);
-var context = new UIContext(theme, factory, viewer.transform);
-var ui = new UIComposer(context);
-```
-
-These are ordinary objects, not global singletons. Pass or serialize the owner that exposes the composer according to the consuming application's architecture.
-
-For non-XR desktop testing, omit the XRI adapter:
-
-```csharp
-var factory = new UIFactory(prefabCatalog, theme);
-```
-
-The default `UGUIWorldSpaceCanvasAdapter` configures a normal `GraphicRaycaster` instead.
-
-### Build a configuration menu
-
-```csharp
-UIInstanceHandle<ObjectConfigurationMenu> handle = ui
-    .For<IConfigurableObject>(target)
-    .AnchoredTo(anchor)
-    .WithLocalOffset(new Vector3(0.15f, 0.1f, 0f))
-    .FaceUser()
-    .ConfigurationPanel("Object Settings")
-    .ShowVisibilityControl()
-    .ShowScaleControl(0.1f, 3f)
-    .ShowDeleteAction()
-    .Build(uiRoot);
-```
-
-`Build` performs the following operations:
-
-1. Validates the target, parent, anchor, slider range, theme, catalog, prefab, viewer, and Canvas configuration.
-2. Instantiates the configuration-menu prefab.
-3. Applies the current theme.
-4. Configures its world-space Canvas through the selected adapter.
-5. Applies the spatial context.
-6. Binds the target once.
-7. Returns a handle that owns release.
-
-Builders are single-use. Calling `Build` twice on the same builder throws an `InvalidOperationException`.
-
-### Close a menu explicitly
-
-```csharp
-handle.Close();
-```
-
-`Close` is idempotent. Calling it multiple times is safe. Accessing `handle.Instance` after close throws `ObjectDisposedException`.
-
-Keeping the handle is optional when the menu can close only through its own Close/Delete buttons or target invalidation.
-
-## Understanding the builder API
-
-### `For<TTarget>(target)`
-
-Starts a typed contextual builder. The target is supplied once and remains strongly typed throughout configuration.
-
-```csharp
-ui.For<IConfigurableObject>(target)
-```
-
-Null targets are rejected immediately. Destroyed Unity objects and targets whose `IUITargetLifetime.IsValid` is false are rejected during binding.
-
-### `AnchoredTo(transform)`
-
-Sets the spatial anchor used to calculate the menu's world position and initial rotation. This call is required before `Build`.
-
-The anchor is not required to be the target's transform:
-
-```csharp
-.AnchoredTo(menuAnchor)
-```
-
-### `WithLocalOffset(offset)`
-
-Interprets the offset in anchor-local space:
-
-```csharp
-.WithLocalOffset(new Vector3(0.15f, 0.1f, 0f))
-```
-
-Rotating the anchor also rotates the offset direction.
-
-### `WithWorldOffset(offset)`
-
-Adds the offset directly in world space:
-
-```csharp
-.WithWorldOffset(Vector3.up * 0.1f)
-```
-
-The last local/world offset method called determines the offset mode.
-
-### `FaceUser()`
-
-Rotates the panel so its front faces the `UIContext.Viewer` while preserving world up. The viewer is explicit; the package does not call `Camera.main`.
-
-### `FollowAnchor()`
-
-Updates position and facing during `LateUpdate`:
-
-```csharp
-.AnchoredTo(movingObject.transform)
-.FollowAnchor()
-```
-
-Without this call, placement is calculated once when the menu is built.
-
-### `ConfigurationPanel(title)`
-
-Selects the concrete `ObjectConfigurationMenu` composite. The displayed heading includes the panel title and the bound target's `DisplayName`.
-
-### Optional controls
-
-```csharp
-.ShowVisibilityControl()
-.ShowScaleControl(0.1f, 3f)
-.ShowDeleteAction()
-```
-
-Controls not selected by the builder are hidden. Scale minimum must be strictly less than maximum.
-
-## Targets, anchors, parents, and viewers
-
-These references have distinct responsibilities:
-
-| Reference | Responsibility | Typical value |
-| --- | --- | --- |
-| Target | Supplies and receives business data | Object implementing `IConfigurableObject` |
-| Anchor | Determines spatial placement | Target transform, attachment point, or shared menu anchor |
-| Parent | Owns the generated hierarchy | `Runtime UI Root` |
-| Viewer | Determines facing and XRI event camera | XR head camera |
-
-They may point to different objects. In particular, `Build(parent)` never changes which target receives toggle, slider, or command operations.
-
-## Themes and prefabs
-
-### Default assets
-
-The package includes:
+1. Drag `World Space Canvas.prefab` into the scene.
+2. Assign its Canvas **Event Camera** to the XR head camera.
+3. Add control and layout prefabs beneath its `RectTransform`.
+4. Configure uGUI events in the Inspector or normal C# code.
+5. Ensure the scene has an `XRUIInputModule` and UI-enabled interactors.
+
+Prefab location:
 
 ```text
-Runtime/Assets/
-├── DefaultUIPrefabCatalog.asset
-├── Themes/
-│   ├── DefaultUITheme.asset
-│   └── RoundedSurface.png
-└── Prefabs/
-    ├── UILabel.prefab
-    ├── UIButton.prefab
-    ├── UIToggle.prefab
-    ├── UISlider.prefab
-    ├── UIStack.prefab
-    ├── UICard.prefab
-    └── ObjectConfigurationMenu.prefab
+Packages/com.evgh.mixed-ui/Runtime/Assets/Prefabs
 ```
 
-The supplied assets are functional placeholders intended to establish hierarchy, serialized references, interaction, and sizing. Duplicate them into the application if they will receive project-specific art changes.
-
-### Theme tokens
-
-`UITheme` groups tokens by responsibility:
-
-- `UIColorTokens`: surface, primary, secondary, subtle, destructive, success, text, disabled, hover, and pressed colors.
-- `UISpacingTokens`: small, medium, and large spacing.
-- `UITypographyTokens`: default TMP font plus body and heading sizes.
-- `UIGeometryTokens`: standard control size, Canvas units per meter, and rounded surface sprite.
-- `UIInteractionTokens`: pressed scale and transition duration.
-
-Controls request `UIStyleVariant` values rather than arbitrary colors:
-
-```csharp
-button.SetStyleVariant(UIStyleVariant.Destructive);
-```
-
-Rounded corners are represented by a nine-sliced sprite because standard uGUI does not provide a numeric corner-radius property.
-
-### Creating an application theme
-
-1. Duplicate `DefaultUITheme.asset` into the application's `Assets` directory.
-2. Assign the project's TMP font.
-3. Adjust semantic colors and token values.
-4. Assign the new asset when constructing `UIFactory` and `UIContext`.
-
-Do not apply separate themes manually to each child. `UIFactory` applies the active theme to the created composite, which propagates it to its controls.
-
-### Creating an application prefab catalog
-
-1. Duplicate the package prefabs into the application if their hierarchy or graphics need customization.
-2. Keep each wrapper's required serialized references assigned.
-3. Duplicate `DefaultUIPrefabCatalog.asset`.
-4. Replace catalog references with the customized prefabs.
-5. Pass that catalog to `UIFactory`.
-
-External code should use typed component properties and explicit card slots rather than searching prefab children by name.
-
-### Regenerating placeholders
-
-Use:
+Theme location:
 
 ```text
-Tools > Mixed-UI > Regenerate Default Assets
+Packages/com.evgh.mixed-ui/Runtime/Assets/Themes/DefaultMixedUITheme.asset
 ```
 
-The generator replaces the package's default theme, catalog, and prefabs. Do not customize those package assets directly if this command will be used; duplicate them into `Assets` first.
+## Standard uGUI behavior
 
-## Using individual controls
-
-The initial elements share the `IUIElement` contract:
+Mixed UI prefabs expose the standard component APIs:
 
 ```csharp
-public interface IUIElement
+using UnityEngine;
+using UnityEngine.UI;
+
+public sealed class SettingsView : MonoBehaviour
 {
-    GameObject GameObject { get; }
-    Transform Transform { get; }
-    RectTransform RectTransform { get; }
-    void ApplyTheme(UITheme theme);
-    void SetVisible(bool visible);
-    void SetInteractable(bool interactable);
+    [SerializeField] private Button applyButton;
+    [SerializeField] private Toggle visibilityToggle;
+    [SerializeField] private Slider scaleSlider;
+
+    private void OnEnable()
+    {
+        applyButton.onClick.AddListener(Apply);
+        visibilityToggle.onValueChanged.AddListener(SetVisible);
+        scaleSlider.onValueChanged.AddListener(SetScale);
+    }
+
+    private void OnDisable()
+    {
+        applyButton.onClick.RemoveListener(Apply);
+        visibilityToggle.onValueChanged.RemoveListener(SetVisible);
+        scaleSlider.onValueChanged.RemoveListener(SetScale);
+    }
+
+    private void Apply() { }
+    private void SetVisible(bool value) { }
+    private void SetScale(float value) { }
 }
 ```
 
-### Label
+There is no Mixed UI click event to learn. `Button.onClick`, `Toggle.onValueChanged`, `Slider.onValueChanged`, `Selectable.interactable`, and `SetValueWithoutNotify` behave exactly as they do in ordinary uGUI.
+
+XRI sends pointer events through `XRUIInputModule`; the same built-in `Selectable.ColorBlock` drives highlighted, pressed, selected, and disabled visuals.
+
+## Canvas prefabs
+
+### World Space Canvas
+
+Contains:
+
+- `Canvas` in World Space mode.
+- `CanvasScaler` using 1,000 dynamic pixels per unit.
+- `TrackedDeviceGraphicRaycaster`.
+- `MixedUIThemeScope` with the default theme.
+
+It intentionally does not contain a standard `GraphicRaycaster` or a custom adapter script.
+
+### Head Follow Canvas
+
+Contains the same XRI/uGUI components plus XRI `LazyFollow` configured for position following and `LookAtWithWorldUp` rotation.
+
+By default, `LazyFollow` uses the main camera when no target is assigned. For deterministic behavior, assign the XR head camera transform to `LazyFollow.target`.
+
+### Canvas Optimizer
+
+The visual gallery includes one `CanvasOptimizer` on its EventSystem. A Canvas present when the scene starts is registered automatically.
+
+If the application instantiates a Canvas later, register it explicitly:
 
 ```csharp
-UILabel label = factory.CreateLabel(parent);
-label.Text = "Object name";
-label.SetStyle(UILabelStyle.Heading);
+canvasOptimizer.RegisterCanvas(canvas);
 ```
 
-### Button
+Unregister it before a runtime-destroyed Canvas is released:
 
 ```csharp
-UIButton button = factory.CreateButton(parent);
-button.Text = "Reset";
-button.SetStyleVariant(UIStyleVariant.Secondary);
-button.Pressed += ResetObject;
+canvasOptimizer.UnregisterCanvas(canvas);
 ```
 
-`Press()` invokes the same command/event path programmatically when the underlying uGUI button is interactable. Normal user input arrives through `Button.onClick`.
+## Control prefabs
+
+### Labels
+
+- `Body Label.prefab`
+- `Heading Label.prefab`
+- `Caption Label.prefab`
+
+Each contains `TextMeshProUGUI` plus `MixedUITextStyle`. Change the text through the normal TMP component.
+
+### Buttons
+
+- `Button Primary.prefab`
+- `Button Secondary.prefab`
+- `Button Subtle.prefab`
+- `Button Destructive.prefab`
+- `Button Success.prefab`
+
+Each contains `Image`, `Button`, TMP text, and `MixedUIButtonStyle`.
+
+Use semantic variants consistently:
+
+- Primary: main action in the current context.
+- Secondary: ordinary action.
+- Subtle: low-emphasis action.
+- Destructive: irreversible or damaging action.
+- Success: completion or positive confirmation.
+
+The variant can also be changed at runtime:
+
+```csharp
+buttonStyle.SetVariant(MixedUIVariant.Destructive);
+```
 
 ### Toggle
 
-```csharp
-UIToggle toggle = factory.CreateToggle(parent);
-toggle.Text = "Visible";
-toggle.SetValueWithoutNotify(target.IsVisible);
-toggle.ValueChanged += value => target.IsVisible = value;
-```
+`Toggle.prefab` is a standard `Toggle` with explicit background, checkmark, label, and `MixedUIToggleStyle` references.
 
-Use `SetValueWithoutNotify` during initialization or rebinding to prevent setup from being interpreted as user input.
+Initialize without invoking application callbacks:
+
+```csharp
+toggle.SetIsOnWithoutNotify(initialValue);
+```
 
 ### Slider
 
-```csharp
-UISlider slider = factory.CreateSlider(parent);
-slider.Text = "Scale";
-slider.SetRange(0.1f, 3f);
-slider.SetValueWithoutNotify(target.Scale);
-slider.ValueChanged += value => target.Scale = value;
-```
+`Slider.prefab` is a standard `Slider` with explicit track, fill, handle, label, and `MixedUISliderStyle` references.
 
-`SetRange` throws when minimum is greater than or equal to maximum.
-
-### Card and stack
-
-`UICard` exposes explicit content slots:
+Configure values normally:
 
 ```csharp
-Transform header = card.HeaderRoot;
-Transform content = card.ContentRoot;
-Transform footer = card.FooterRoot;
+slider.minValue = 0.1f;
+slider.maxValue = 3f;
+slider.SetValueWithoutNotify(initialScale);
 ```
 
-`UIStack.ContentRoot` is its own transform and uses a standard horizontal or vertical uGUI layout group.
+## Layout prefabs
 
-When creating individual elements directly, the caller owns their event subscriptions and lifetime. Contextual composites perform this wiring automatically.
+- `Card.prefab`: rounded surface, `CanvasGroup`, and vertical layout.
+- `Vertical Stack.prefab`: `VerticalLayoutGroup` plus `ContentSizeFitter`.
+- `Horizontal Stack.prefab`: `HorizontalLayoutGroup` plus `ContentSizeFitter`.
+- `Modal.prefab`: elevated surface, heading, body, Cancel and Confirm buttons.
+- `Scroll Panel.prefab`: themed surface with `ScrollRect`, masked viewport, and vertical content.
 
-## Commands
+These prefabs contain presentation and standard uGUI components only. Modal visibility, confirmation logic, navigation, and data binding belong to the consuming application.
 
-Use `UICommand<TTarget>` for consequential actions or actions with availability rules:
+## Theme system
+
+`MixedUITheme` is a small visual asset containing:
+
+- Semantic color palette.
+- TMP font and body/heading/caption sizes.
+- Small, medium, and large spacing.
+- Canvas units per meter and standard control size.
+- Selectable fade and state-blend values.
+- Nine-sliced control and surface sprites.
+
+### Create a theme
+
+Select:
+
+```text
+Create → Mixed-UI → Theme
+```
+
+For application-specific styling, duplicate the package theme into `Assets` and edit that copy.
+
+### Apply a theme
+
+Assign it to the `MixedUIThemeScope` on a Canvas. The scope applies it to all `MixedUIStyleBehaviour` children.
+
+Apply changes explicitly:
 
 ```csharp
-var deleteCommand = new UICommand<IConfigurableObject>(
-    target,
-    value => value.Delete(),
-    value => value.CanDelete);
-
-deleteButton.BindCommand(deleteCommand);
+themeScope.ApplyTheme();
 ```
 
-`Execute` does nothing when `CanExecute` is false.
-
-When state affecting `CanExecute` changes, notify the command:
+Switch the complete theme at runtime:
 
 ```csharp
-deleteCommand.NotifyCanExecuteChanged();
+themeScope.Theme = darkTheme;
 ```
 
-The bound button refreshes its `interactable` state through `CanExecuteChanged`.
+### Style bindings
 
-Before reusing the button for unrelated behavior, remove its binding:
+- `MixedUIButtonStyle` writes a semantic `ColorBlock`, control sprite, TMP font, size, and text color.
+- `MixedUIToggleStyle` writes toggle states, background, checkmark, and label visuals.
+- `MixedUISliderStyle` writes handle states, track/fill/handle sprites, and label visuals.
+- `MixedUITextStyle` writes TMP font, role size, and primary/secondary text color.
+- `MixedUISurfaceStyle` writes surface color and nine-sliced sprite.
 
-```csharp
-deleteButton.UnbindCommand();
+Style bindings never subscribe to application events or change domain values.
+
+## Visual gallery sample
+
+Import **Visual Gallery** from the Mixed UI package's Samples tab.
+
+The sample includes:
+
+- A world-space XRI Canvas.
+- All semantic button variants.
+- Toggle, slider, and disabled control states.
+- Card, modal, and scroll panel examples.
+- `EventSystem`, `XRUIInputModule`, and `CanvasOptimizer`.
+- A camera so the scene can load and validate without XR hardware.
+
+Add or merge the gallery into a scene with an XR Origin to test ray and poke interaction on a headset or simulator.
+
+## Regenerating package assets
+
+Run:
+
+```text
+Tools → Mixed-UI → Regenerate Default Assets
 ```
 
-Confirmation dialogs and undo are intentionally not built into `UICommand<TTarget>`. Wrap or implement `IUICommand` for those policies.
+This replaces all package-owned default prefabs, the default theme, rounded sprite import settings, gallery prefab, and sample scene.
 
-## Target lifetime and cleanup
+Do not customize generated package assets directly. Duplicate them into the application's `Assets` directory first.
 
-Targets with an explicit lifecycle should implement:
+## Extending the visual kit
 
-```csharp
-public interface IUITargetLifetime
-{
-    bool IsValid { get; }
-    event Action Invalidated;
-}
+To add a styled uGUI control:
+
+1. Use the standard uGUI component as the behavior API.
+2. Derive a visual binding from `MixedUIStyleBehaviour`.
+3. Serialize explicit references to graphics and TMP text.
+4. Apply only properties from `MixedUITheme`.
+5. Add a prefab and validation tests.
+
+Do not add commands, target models, data binding, factories, scene searches, or input abstractions to a style component.
+
+## Migrating from 0.1.0
+
+Version 0.2.0 is intentionally breaking.
+
+| Removed 0.1 API | 0.2 replacement |
+| --- | --- |
+| `UIButton` | `UnityEngine.UI.Button` + `MixedUIButtonStyle` |
+| `UIToggle` | `UnityEngine.UI.Toggle` + `MixedUIToggleStyle` |
+| `UISlider` | `UnityEngine.UI.Slider` + `MixedUISliderStyle` |
+| `UILabel` | `TextMeshProUGUI` + `MixedUITextStyle` |
+| `UIVisualStateController` | uGUI `Selectable.ColorBlock` |
+| `UITheme` | `MixedUITheme` |
+| `UIFactory` / `UIPrefabCatalog` | Direct prefab references or the consuming project's asset system |
+| `UIComposer` / contextual builders | Consumer-owned view/controller code and normal UnityEvents |
+| `IUICommand` / `UICommand<T>` | `Button.onClick` or application command architecture |
+| `UISpatialFollower` | XRI `LazyFollow` |
+| `XRIWorldSpaceCanvasAdapter` | XRI-ready Canvas prefabs |
+| Object configuration sample | Visual Gallery sample |
+
+Remove missing 0.1 components from existing prefabs and replace them with the standard uGUI component plus the corresponding style binding.
+
+## Testing
+
+Run both suites from **Window → General → Test Runner**.
+
+Batch mode:
+
+```bash
+/home/evgh/Unity/Hub/Editor/6000.4.2f1/Editor/Unity \
+  -batchmode -projectPath /home/evgh/Fun/mixed-ui \
+  -runTests -testPlatform EditMode \
+  -testResults /tmp/mixed-ui-edit.xml
 ```
 
-Raise `Invalidated` before destroying or permanently retiring the object:
-
-```csharp
-public void Delete()
-{
-    _isValid = false;
-    Invalidated?.Invoke();
-    Destroy(gameObject);
-}
+```bash
+/home/evgh/Unity/Hub/Editor/6000.4.2f1/Editor/Unity \
+  -batchmode -projectPath /home/evgh/Fun/mixed-ui \
+  -runTests -testPlatform PlayMode \
+  -testResults /tmp/mixed-ui-play.xml
 ```
 
-When invalidation occurs, the configuration menu:
+Tests cover prefab integrity, standard component composition, XRI Canvas setup, semantic theme application, runtime theme replacement, standard uGUI callbacks, gallery loading, and XRI `LazyFollow` without XR hardware.
 
-1. Disables interaction.
-2. Unsubscribes every control and target callback.
-3. Clears the contextual target reference.
-4. Requests its instance handle to release the menu.
+## Troubleshooting
 
-This happens immediately even though Unity may defer target destruction until the end of the frame.
+### Text is invisible
 
-For targets derived from `UnityEngine.Object`, the contextual base also recognizes Unity's destroyed-object null semantics. Implementing `IUITargetLifetime` is still preferred because it closes the menu immediately without waiting for the lifecycle check.
+Import TMP Essential Resources and assign a TMP font to the active `MixedUITheme`.
 
-Rebinding an existing contextual element follows the same cleanup rules: the old target is completely unbound before the new target is stored.
+### XR ray or poke does not interact
 
-## XRI interaction setup
+Verify that the scene uses `XRUIInputModule`, the Canvas contains `TrackedDeviceGraphicRaycaster`, and the interactor has UI interaction enabled.
 
-`XRIWorldSpaceCanvasAdapter` configures each created menu Canvas by:
+### The Canvas cannot be hit
 
-- Setting `RenderMode.WorldSpace`.
-- Assigning the explicit viewer camera as `worldCamera`.
-- Disabling and releasing the ordinary `GraphicRaycaster`.
-- Adding `TrackedDeviceGraphicRaycaster` when absent.
-- Verifying that the supplied EventSystem contains exactly one input-module component and that it is `XRUIInputModule`.
+Verify that it is in World Space mode, its event camera is the XR head camera, and interactive `Graphic` components have `Raycast Target` enabled.
 
-Create it with the scene's EventSystem:
+### Theme changes are not visible
 
-```csharp
-var adapter = new XRIWorldSpaceCanvasAdapter(eventSystem);
-```
+Call `MixedUIThemeScope.ApplyTheme()` after editing a theme at runtime, or reassign the `Theme` property.
 
-The adapter does not find or create an EventSystem. This prevents the package from unexpectedly replacing input modules used elsewhere in the scene.
+### Head-follow Canvas reports an unassigned target
 
-### XRI checklist
+Assign the XR head camera transform to `LazyFollow.target`, or ensure the scene camera is tagged `MainCamera` before the Canvas is enabled.
 
-- The viewer transform contains a `Camera`.
-- One active `EventSystem` is used for the UI scope.
-- That EventSystem has one `XRUIInputModule` component and no other input-module component, including disabled modules.
-- The XR ray interactor has UI interaction enabled.
-- Input actions needed by the XRI rig are enabled.
-- UI graphics that should receive input have `Raycast Target` enabled.
-- Decorative child graphics do not unnecessarily block raycasts.
+## Limitations
 
-## Extending the package
-
-### Add a reusable element
-
-1. Create a focused component derived from `UIElement`.
-2. Serialize explicit uGUI/TMP child references.
-3. Validate missing references in `OnValidate` and before use.
-4. Apply semantic theme tokens in `OnThemeApplied`.
-5. Expose normal C# events for application binding.
-6. Subscribe and unsubscribe symmetrically in Unity lifecycle methods.
-7. Add a typed prefab reference to `UIPrefabCatalog`.
-8. Add a typed factory creation method.
-9. Test theming, interactability, notifications, and cleanup.
-
-Do not add target-specific domain behavior to reusable elements.
-
-### Add a contextual composite
-
-Derive from `ContextualUIElement<TTarget>` and implement:
-
-```csharp
-protected override void OnBind(UICreationContext<TTarget> context)
-{
-    // Initialize without notifying, then subscribe.
-}
-
-protected override void OnUnbind()
-{
-    // Remove every control, command, and target subscription.
-}
-```
-
-The composite owns the target context. Its child controls remain reusable and domain-independent.
-
-### Add another interaction framework
-
-Implement `IWorldSpaceCanvasAdapter` in a separate assembly:
-
-```csharp
-public sealed class OtherFrameworkCanvasAdapter : IWorldSpaceCanvasAdapter
-{
-    public void Configure(Canvas canvas, Transform viewer)
-    {
-        // Configure the framework-specific Canvas/raycaster boundary.
-    }
-}
-```
-
-Do not introduce framework types into controls, commands, themes, contexts, or builders.
-
-### Add pooling
-
-Implement `IUIObjectProvider`:
-
-```csharp
-public interface IUIObjectProvider
-{
-    T Get<T>(T prefab, Transform parent) where T : Component;
-    void Release<T>(T instance) where T : Component;
-}
-```
-
-Pass the provider to `UIFactory`. The builder and contextual APIs do not need to change.
-
-Pooled implementations must ensure instances are completely unbound and visually reset before reuse.
+- The package styles Canvas-based uGUI; it does not ship collider-based `XRSimpleInteractable` controls.
+- The consuming application owns XR Origin, interactors, input actions, data binding, navigation policy, and modal behavior.
+- The default font is not embedded; use the project's TMP resources and font assets.
+- Visuals are a coherent neutral-dark baseline, not a complete application brand.
 
 ## Package structure
 
 ```text
 Packages/com.evgh.mixed-ui/
 ├── Runtime/
-│   ├── Core/           Context and element lifetime contracts
-│   ├── Styling/        Theme and semantic tokens
-│   ├── Elements/       Label, button, toggle, and slider
-│   ├── Layout/         Card and stack
-│   ├── Commands/       Command contracts and typed command
-│   ├── Context/        Target capabilities and configuration menu
-│   ├── Factory/        Catalog, provider, factory, Canvas boundary
-│   ├── Builders/       Typed contextual builder API
-│   ├── Spatial/        Placement and following
-│   ├── Interaction/    Framework-independent visual state
-│   ├── Adapters/XRI/   XRI-specific Canvas adapter assembly
-│   └── Assets/         Placeholder theme, catalog, and prefabs
-├── Editor/             Default asset generator
-├── Tests/              EditMode and PlayMode tests
-├── Samples~/           Importable object-configuration sample
-└── Documentation~/     Package Manager documentation entry
+│   ├── Styling/       Theme scope and visual bindings
+│   └── Assets/        Themes and XRI/uGUI prefabs
+├── Editor/            Default asset generator
+├── Tests/             EditMode and PlayMode validation
+├── Samples~/          Importable Visual Gallery
+└── Documentation~/    Package Manager documentation entry
 ```
-
-## Testing
-
-### Unity Test Runner
-
-Open:
-
-```text
-Window > General > Test Runner
-```
-
-Run both EditMode and PlayMode suites.
-
-### Batch mode
-
-From the repository root on this development machine:
-
-```bash
-/home/evgh/Unity/Hub/Editor/6000.4.2f1/Editor/Unity \
-  -batchmode \
-  -projectPath /home/evgh/Fun/mixed-ui \
-  -runTests \
-  -testPlatform EditMode \
-  -testResults /tmp/mixed-ui-edit-results.xml \
-  -logFile /tmp/mixed-ui-edit-tests.log
-```
-
-```bash
-/home/evgh/Unity/Hub/Editor/6000.4.2f1/Editor/Unity \
-  -batchmode \
-  -projectPath /home/evgh/Fun/mixed-ui \
-  -runTests \
-  -testPlatform PlayMode \
-  -testResults /tmp/mixed-ui-play-results.xml \
-  -logFile /tmp/mixed-ui-play-tests.log
-```
-
-The current implementation passes eight EditMode tests and two PlayMode tests. No test requires XR hardware.
-
-Coverage includes:
-
-- Binding and rebinding order.
-- Subscription cleanup.
-- Command targeting and `CanExecute` behavior.
-- No-notify control initialization.
-- Delete behavior against the current target.
-- Target invalidation and release.
-- Builder type and instance preservation.
-- Single-use builder validation.
-- Theme application and missing prefab errors.
-- Anchor/parent separation.
-- Delayed Unity destruction.
-- XRI EventSystem and raycaster validation.
-
-## Troubleshooting
-
-### Text is missing or TMP reports missing resources
-
-Import TMP Essential Resources and assign a TMP font in the active `UITheme`.
-
-### `The supplied EventSystem must contain exactly one active input module`
-
-Remove competing input modules and keep one `XRUIInputModule` on the EventSystem passed to `XRIWorldSpaceCanvasAdapter`.
-
-### `The viewer transform ... requires a Camera component`
-
-Pass the XR head camera's transform to `UIContext`, not the XR rig root or an arbitrary tracking transform.
-
-### XR rays hover over the menu but do not click
-
-Check that the ray interactor has UI interaction enabled, its input actions are active, and the scene uses `XRUIInputModule`.
-
-### The menu is in the wrong position
-
-Verify whether the offset should be local or world space. `WithLocalOffset` is rotated by the anchor; `WithWorldOffset` is not.
-
-Also remember that `Build(uiRoot)` sets the hierarchy parent, not the spatial anchor.
-
-### The menu does not move with its object
-
-Add `.FollowAnchor()` to the builder. Placement is static by default.
-
-### The menu faces away from the viewer
-
-Verify the root orientation of custom world-space Canvas prefabs. The supplied prefab follows the expected uGUI forward orientation. Customized prefabs should preserve that root orientation.
-
-### The delete button is disabled
-
-The bound target returned `false` from `CanDelete`. If availability changes while the menu is open, update the associated command and call `NotifyCanExecuteChanged`.
-
-### A menu still references an old target
-
-Custom contextual composites must remove every subscription in `OnUnbind`. Use `SetValueWithoutNotify` before subscribing when initializing controls for the new target.
-
-### `UIPrefabCatalog is missing its required ... prefab`
-
-Assign every prefab required by the factory call, or restore the default catalog. The error intentionally occurs before the package attempts to use a partially configured instance.
-
-### Changes to package placeholder prefabs disappeared
-
-The default asset generator replaces package-owned placeholder assets. Duplicate customized assets into the application's `Assets` directory and reference them from an application-owned catalog.
-
-## Current limitations
-
-- Initial XRI support covers tracked-device rays, not direct near-poke interaction.
-- Control values are read when binding and written on user changes. External changes to target properties are not automatically observed while the menu remains open.
-- The default object provider uses `Instantiate` and `Destroy`; pooling is an extension point rather than a supplied implementation.
-- The initial builder supports the concrete object-configuration menu rather than a fully generic declarative binding language.
-- Undoable commands, confirmation-dialog policy, and MRTK adapters are not included in v0.1.
-- Placeholder visuals are intended for architecture and testing, not final production art.
-
-## Additional documentation
-
-- [Package README](Packages/com.evgh.mixed-ui/README.md)
-- [Object Configuration sample](Packages/com.evgh.mixed-ui/Samples~/ObjectConfiguration/README.md)
-- [Original implementation plan](PLANS.md)
-- [Package changelog](Packages/com.evgh.mixed-ui/CHANGELOG.md)

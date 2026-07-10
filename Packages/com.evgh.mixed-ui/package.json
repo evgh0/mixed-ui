@@ -1,23 +1,22 @@
 {
   "name": "com.evgh.mixed-ui",
   "displayName": "Mixed UI",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "unity": "6000.0",
-  "description": "Reusable, themed, context-aware world-space uGUI controls for mixed reality.",
+  "description": "A themed visual component kit for XRI world-space uGUI.",
   "author": {
     "name": "evgh"
   },
   "keywords": ["ui", "ugui", "mixed-reality", "xr"],
   "dependencies": {
-    "com.unity.inputsystem": "1.17.0",
     "com.unity.ugui": "2.0.0",
     "com.unity.xr.interaction.toolkit": "3.0.9"
   },
   "samples": [
     {
-      "displayName": "Object Configuration",
-      "description": "Opens a contextual world-space configuration menu for a scene object.",
-      "path": "Samples~/ObjectConfiguration"
+      "displayName": "Visual Gallery",
+      "description": "Shows every Mixed UI control and semantic visual variant on XRI world-space canvases.",
+      "path": "Samples~/VisualGallery"
     }
   ]
 }

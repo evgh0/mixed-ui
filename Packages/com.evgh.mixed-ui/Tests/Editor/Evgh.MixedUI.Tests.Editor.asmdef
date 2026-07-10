@@ -5,6 +5,7 @@
     "Evgh.MixedUI",
     "UnityEngine.UI",
     "Unity.TextMeshPro",
+    "Unity.XR.Interaction.Toolkit",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
   ],
@@ -14,4 +15,3 @@
   "autoReferenced": false,
   "defineConstraints": ["UNITY_INCLUDE_TESTS"]
 }
-

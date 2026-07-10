@@ -1,3 +1,3 @@
-# Mixed Ui manual
+# Mixed UI manual
 
-See the package [README](../README.md) for architecture, setup, extension guidance, sample code, and limitations.
+See the package [README](../README.md) for XRI setup, prefab usage, theme customization, sample details, and migration guidance.

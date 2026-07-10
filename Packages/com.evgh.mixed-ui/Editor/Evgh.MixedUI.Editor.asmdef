@@ -4,9 +4,9 @@
   "references": [
     "Evgh.MixedUI",
     "UnityEngine.UI",
-    "Unity.TextMeshPro"
+    "Unity.TextMeshPro",
+    "Unity.XR.Interaction.Toolkit"
   ],
   "includePlatforms": ["Editor"],
   "autoReferenced": true
 }
-
