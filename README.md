@@ -1,6 +1,6 @@
-# Evgh Mixed UI
+# Mixed Ui
 
-Evgh Mixed UI is a Unity 6 package for building reusable, consistently styled, context-aware mixed-reality interfaces with Unity's built-in uGUI Canvas system.
+Mixed Ui is a Unity 6 package for building reusable, consistently styled, context-aware mixed-reality interfaces with Unity's built-in uGUI Canvas system.
 
 The package focuses on a common runtime UI problem: opening a menu for one specific scene object and ensuring every control operates on that object without relying on global selection state. A visibility toggle, scale slider, delete button, or future custom control receives its target once through a typed contextual binding.
 
@@ -512,7 +512,7 @@ External code should use typed component properties and explicit card slots rath
 Use:
 
 ```text
-Tools > Evgh Mixed UI > Regenerate Default Assets
+Tools > Mixed-UI > Regenerate Default Assets
 ```
 
 The generator replaces the package's default theme, catalog, and prefabs. Do not customize those package assets directly if this command will be used; duplicate them into `Assets` first.

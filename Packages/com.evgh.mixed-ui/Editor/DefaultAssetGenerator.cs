@@ -17,7 +17,7 @@ namespace Evgh.MixedUI.Editor
         private const string Prefabs = Root + "/Prefabs";
         private const string Themes = Root + "/Themes";
 
-        [MenuItem("Tools/Evgh Mixed UI/Regenerate Default Assets")]
+        [MenuItem("Tools/Mixed-UI/Regenerate Default Assets")]
         public static void GenerateAll()
         {
             EnsureFolder("Packages/com.evgh.mixed-ui/Runtime", "Assets");
@@ -41,7 +41,7 @@ namespace Evgh.MixedUI.Editor
             EditorUtility.SetDirty(theme);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("Evgh Mixed UI default assets generated.");
+            Debug.Log("Mixed-UI default assets generated.");
         }
 
         private static Sprite CreateRoundedSprite()

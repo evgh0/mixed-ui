@@ -1,6 +1,6 @@
 {
   "name": "com.evgh.mixed-ui",
-  "displayName": "Evgh Mixed UI",
+  "displayName": "Mixed UI",
   "version": "0.1.0",
   "unity": "6000.0",
   "description": "Reusable, themed, context-aware world-space uGUI controls for mixed reality.",
@@ -18,4 +18,3 @@
     }
   ]
 }
-

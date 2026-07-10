@@ -65,7 +65,7 @@ namespace Evgh.MixedUI
     }
 
     /// <summary>Semantic visual and interaction tokens shared by all elements.</summary>
-    [CreateAssetMenu(fileName = "UITheme", menuName = "Evgh/Mixed UI/Theme")]
+    [CreateAssetMenu(fileName = "UITheme", menuName = "Mixed-UI/Theme")]
     public sealed class UITheme : ScriptableObject
     {
         public UIColorTokens colors = new();

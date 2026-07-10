@@ -1,4 +1,4 @@
-# Evgh Mixed UI
+# Mixed Ui
 
 `com.evgh.mixed-ui` is a Unity 6 package for reusable, themed, context-aware mixed-reality UI built on the built-in world-space Canvas system.
 
@@ -25,7 +25,7 @@ The repository includes a minimal Unity 6 host project and this embedded package
 4. For XRI, provide a consumer-owned `EventSystem` containing exactly one `XRUIInputModule`. The adapter validates rather than silently rewriting scene input.
 5. Ensure the viewer transform has a `Camera`; XRI Canvas instances receive it as their event camera.
 
-Placeholder assets can be regenerated from `Tools > Evgh Mixed UI > Regenerate Default Assets`.
+Placeholder assets can be regenerated from `Tools > Mixed-UI > Regenerate Default Assets`.
 
 ## Opening contextual UI
 
@@ -76,4 +76,3 @@ Targets may implement `IUITargetLifetime`. A contextual composite subscribes whi
 - Controls initialize from the target and write user changes back; unrelated external target changes are not observed live.
 - The provider boundary supports future pooling, but the supplied provider uses `Instantiate` and `Destroy`.
 - Generic declarative property binding, undoable commands, confirmation dialogs, and MRTK adapters are not included in v0.1.
-

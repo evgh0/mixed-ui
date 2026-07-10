@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Evgh.MixedUI
 {
-    [CreateAssetMenu(fileName = "UIPrefabCatalog", menuName = "Evgh/Mixed UI/Prefab Catalog")]
+    [CreateAssetMenu(fileName = "UIPrefabCatalog", menuName = "Mixed-UI/Prefab Catalog")]
     public sealed class UIPrefabCatalog : ScriptableObject
     {
         [SerializeField] private UILabel labelPrefab;
@@ -22,4 +22,3 @@ namespace Evgh.MixedUI
         public ObjectConfigurationMenu ConfigurationMenuPrefab => configurationMenuPrefab;
     }
 }
-
