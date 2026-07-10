@@ -1,0 +1,12 @@
+{
+  "name": "Evgh.MixedUI.Editor",
+  "rootNamespace": "Evgh.MixedUI.Editor",
+  "references": [
+    "Evgh.MixedUI",
+    "UnityEngine.UI",
+    "Unity.TextMeshPro"
+  ],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}
+

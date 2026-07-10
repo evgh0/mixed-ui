@@ -1,0 +1,17 @@
+{
+  "name": "Evgh.MixedUI.Tests.Runtime",
+  "rootNamespace": "Evgh.MixedUI.Tests",
+  "references": [
+    "Evgh.MixedUI",
+    "Evgh.MixedUI.XRI",
+    "UnityEngine.UI",
+    "Unity.XR.Interaction.Toolkit",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll"],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"]
+}
+

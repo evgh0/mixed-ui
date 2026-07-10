@@ -1,0 +1,10 @@
+{
+  "name": "Evgh.MixedUI.Sample",
+  "rootNamespace": "Evgh.MixedUI.Sample",
+  "references": [
+    "Evgh.MixedUI",
+    "Evgh.MixedUI.XRI",
+    "UnityEngine.UI",
+    "Unity.XR.Interaction.Toolkit"
+  ]
+}

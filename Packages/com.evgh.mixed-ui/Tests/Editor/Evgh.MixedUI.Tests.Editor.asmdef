@@ -1,0 +1,17 @@
+{
+  "name": "Evgh.MixedUI.Tests.Editor",
+  "rootNamespace": "Evgh.MixedUI.Tests",
+  "references": [
+    "Evgh.MixedUI",
+    "UnityEngine.UI",
+    "Unity.TextMeshPro",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": ["Editor"],
+  "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll"],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"]
+}
+
